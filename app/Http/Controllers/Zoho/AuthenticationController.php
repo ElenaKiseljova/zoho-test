@@ -4,18 +4,24 @@ namespace App\Http\Controllers\Zoho;
 
 use App\Http\Controllers\Controller;
 use App\Models\ZohoAuthToken;
-use Error;
-use Illuminate\Http\Request;
 
 class AuthenticationController extends Controller
 {
   private $OAuthURL = 'https://accounts.zoho.eu/oauth/v2/token';
 
   /**
-   * Getting refresh token
+   * Getting and saving Refresh token
    */
   public function updateRefreshToken()
   {
+    // Response data
+    $respData = [
+      'error' => null,
+      'success' => null,
+      'message' => null,
+      'data' => null
+    ];
+
     // Data
     $post = [
       'grant_type' => 'authorization_code',
@@ -29,14 +35,7 @@ class AuthenticationController extends Controller
     $ch = curl_init();
 
     // Settings cURL
-    curl_setopt($ch, CURLOPT_URL, $this->OAuthURL);
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-      'Content-Type' => 'application/x-www-form-urlencoded'
-    ]);
+    curl_setopt_array($ch, $this->getCUrlOptions($post));
 
     // Execute
     $response = curl_exec($ch);
@@ -64,90 +63,164 @@ class AuthenticationController extends Controller
       }
 
       // Delete old entity with Tokens
-      self::clearTokens();
+      $this->clearTokens();
 
-      return to_route('create.account-with-deal')->withErrors([$key => $message]);
+      $respData['error'] = [
+        'code' => $key,
+        'message' => $message,
+      ];
     } else if (isset($response['refresh_token']) && isset($response['access_token'])) {
       ZohoAuthToken::create([
         'refresh_token' => $response['refresh_token'],
-        'access_token' => $response['access_token']
+        'access_token' => $response['access_token'],
+        'expires_in' => $response['expires_in'],
       ]);
 
-      return to_route('create.account-with-deal')->with('message', 'Tokens were successfully created');
-    } else {
-      dump($response);
+      $respData['success'] = true;
+      $respData['message'] = 'Tokens were successfully created';
+      $respData['data'] = $response;
     }
+
+    return $respData;
   }
 
   /**
-   * Getting access token
+   * Getting and saving Refresh token Handler
+   */
+  public function updateRefreshTokenHandler()
+  {
+    // Response data
+    ['error' => $error, 'message' => $message] = $this->updateRefreshToken();
+
+    if (isset($error)) {
+      return back()->withErrors([$error['code'] => $error['message']]);
+    }
+
+    return back()->with('message', $message);
+  }
+
+  /**
+   * Getting and saving Access token
    */
   public function updateAccessToken()
   {
-    $tokens = ZohoAuthToken::first();
-
-    // Data
-    $post = [
-      'grant_type' => 'refresh_token',
-      'client_id' => env('ZOHO_CLIENT_ID'),
-      'client_secret' => env('ZOHO_CLIENT_SECRET'),
-      'refresh_token' => $tokens->refresh_token,
+    // Response data
+    $respData = [
+      'error' => null,
+      'success' => null,
+      'message' => null,
+      'data' => null
     ];
 
-    // Init cURL
-    $ch = curl_init();
+    // Saved tokens
+    $tokens = ZohoAuthToken::first();
 
-    // Settings cURL
-    curl_setopt($ch, CURLOPT_URL, $this->OAuthURL);
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-      'Content-Type' => 'application/x-www-form-urlencoded'
-    ]);
+    if ($tokens && $tokens->refresh_token) {
+      // Data
+      $post = [
+        'grant_type' => 'refresh_token',
+        'client_id' => env('ZOHO_CLIENT_ID'),
+        'client_secret' => env('ZOHO_CLIENT_SECRET'),
+        'refresh_token' => $tokens->refresh_token,
+      ];
 
-    // Execute
-    $response = curl_exec($ch);
+      // Init cURL
+      $ch = curl_init();
 
-    // JSON to array
-    $response = json_decode($response, 1);
+      // Settings cURL
+      curl_setopt_array($ch, $this->getCUrlOptions($post));
 
-    if (isset($response['error'])) {
-      return to_route('create.account-with-deal')->withErrors(['400' => $response['error']]);
-    } else if (isset($response['access_token'])) {
-      $tokens = ZohoAuthToken::first();
+      // Execute
+      $response = curl_exec($ch);
 
-      if ($tokens) {
+      // JSON to array
+      $response = json_decode($response, 1);
+
+      if (isset($response['error'])) {
+        $respData['error'] = ['code' => 400, 'message' => $response['error']];
+      } else if (isset($response['access_token'])) {
         $tokens->update([
-          'access_token' => $response['access_token']
+          'access_token' => $response['access_token'],
+          'expires_in' => $response['expires_in']
         ]);
 
-        return to_route('create.account-with-deal')->with('message', 'Access Token was successfully updated');
-      } else {
-        return to_route('create.account-with-deal')->withErrors(['400' => 'The access token was not updated in the DB but was successfully updated in the CRM because ZohoAuthToken::first() does not exist']);
+        $respData['success'] = true;
+        $respData['message'] = 'Access Token was successfully updated';
+        $respData['data'] = $response;
       }
     } else {
-      dump($response);
+      $respData['error'] = ['code' => 400, 'message' => 'ZohoAuthToken::first() does not exist'];
+    }
+
+    return $respData;
+  }
+
+  /**
+   * Getting and saving Access token Handler
+   */
+  public function updateAccessTokenHandler()
+  {
+    // Response data
+    ['error' => $error, 'message' => $message] = $this->updateAccessToken();
+
+    if (isset($error)) {
+      return back()->withErrors([$error['code'] => $error['message']]);
+    }
+
+    return back()->with('message', $message);
+  }
+
+  /**
+   * Access token
+   */
+  public function accessToken(): ?string
+  {
+    $tokens = ZohoAuthToken::first();
+
+    $accessToken = $tokens ? $tokens->access_token : null;
+
+    if (!$tokens || $tokens->updated_at->diffInSeconds() > $tokens->expires_in) {
+      ['data' => $data] = $this->updateAccessToken();
+
+      if ($data) {
+        $accessToken =  $data['access_token'];
+      }
+    }
+
+    return $accessToken;
+  }
+
+  /**
+   * Delete old DB entity with Tokens
+   */
+  private function clearTokens()
+  {
+    $tokens = ZohoAuthToken::first();
+
+    if ($tokens) {
+      $tokens->delete();
     }
   }
 
   /**
-   * Delete old entity with Tokens
+   * Get array of options for cUrl
    */
-  public function clearTokens()
+  private function getCUrlOptions(?array $postData = null): array
   {
-    dd('hello');
-    // $tokens = ZohoAuthToken::first();
+    $options = [
+      CURLOPT_URL => $this->OAuthURL,
+      CURLOPT_RETURNTRANSFER => 1,
+      CURLOPT_SSL_VERIFYPEER => 0,
+      CURLOPT_HTTPHEADER => [
+        'Content-Type: application/x-www-form-urlencoded'
+      ],
+    ];
 
-    // if ($tokens) {
-    //   $tokens->delete();
-    // }
+    if ($postData) {
+      $options[CURLOPT_POST] = 1;
+      $options[CURLOPT_POSTFIELDS] = http_build_query($postData);
+    }
+
+    return $options;
   }
 }
-
-
-// 1000.cc3afeeef55463d023974935afb4eaa0.c246d38a5f4ac64ab51c8535184bcb20
-// 1000.e19526c4ba5804b2963ccb133b17c334.fb274ab54a90a37d99e44cb4e607b502
-// 2025-05-25 19:25:03
-// 2025-05-25 20:57:41
