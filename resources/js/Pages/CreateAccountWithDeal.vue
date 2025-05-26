@@ -56,15 +56,19 @@ const displayMessage = () => {
 
 <template>
   <div class="flex items-center flex-col">
-    <div v-if="!$attrs.hasTokens" class="">
-      <Link href="/refresh-token" method="post">Refresh Token</Link>
+    <div v-if="!$attrs.hasTokens" class="text-orange-700">
+      <Link href="/update-refresh-token">
+        Update Refresh Token (once time)</Link
+      >
 
       <br />
     </div>
 
-    <!-- For test reason START -->
-    <div class="">
-      <Link href="/access-token" method="put">Update Access Token</Link>
+    <div
+      v-if="$attrs.hasTokens && errors['INVALID_TOKEN']"
+      class="text-indigo-600"
+    >
+      <Link href="/update-access-token">Update Access Token</Link>
 
       <br />
     </div>
@@ -74,9 +78,18 @@ const displayMessage = () => {
 
       <br />
     </div>
+
+    <!-- For test reason START -->
+    <div class="text-green-500">
+      <Link href="/store-account-with-deal" method="post"
+        >Store Account with Deal</Link
+      >
+
+      <br />
+    </div>
     <!-- For test reason END -->
 
-    <Form class="w-[500px]" />
+    <Form class="w-[500px]" :stages="$attrs?.stages?.data" />
   </div>
 </template>
 
