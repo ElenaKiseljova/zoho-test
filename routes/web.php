@@ -1,26 +1,16 @@
 <?php
 
 use App\Http\Controllers\Zoho\AccountController;
-use App\Http\Controllers\Zoho\DealController;
 use App\Http\Controllers\Zoho\AuthenticationController;
-use App\Models\ZohoAuthToken;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::get('/', function () {
   return view('welcome');
 })->name('home');
 
-Route::get('/create-account-with-deal', function () {
-  $hasTokens = ZohoAuthToken::first();
+Route::get('/create-account-with-deal', [AccountController::class, 'createAccountWithDeal']);
+Route::post('/store-account-with-deal', [AccountController::class, 'storeAccountWithDealHandler']);
 
-  return Inertia::render('CreateAccountWithDeal', ['hasTokens' => !!$hasTokens]);
-})->name('create.account-with-deal');
-
-Route::resource('/accounts', AccountController::class);
-
-Route::resource('/accounts.deals', DealController::class)->shallow();
-
-Route::post('/refresh-token', [AuthenticationController::class, 'updateRefreshToken'])->name('refresh.token');
-Route::put('/access-token', [AuthenticationController::class, 'updateAccessToken'])->name('access.token');
-Route::delete('/clear-tokens', [AuthenticationController::class, 'clearTokens'])->name('clear.tokens');
+Route::get('/update-refresh-token', [AuthenticationController::class, 'updateRefreshTokenHandler']);
+Route::get('/update-access-token', [AuthenticationController::class, 'updateAccessTokenHandler']);
+Route::delete('/clear-tokens', [AuthenticationController::class, 'clearTokens']);
