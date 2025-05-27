@@ -193,7 +193,7 @@ class AuthenticationController extends Controller
   /**
    * Delete old DB entity with Tokens
    */
-  private function clearTokens()
+  public function clearTokens()
   {
     $tokens = ZohoAuthToken::first();
 
