@@ -1,15 +1,23 @@
 # ZohoCRM test integration
 
+![Test integration ZohoCRM Poster](http://tigle.zzz.com.ua/Test-ZohoCRM-Poster.png)
+
 ## Idea of the project
 
 - Vue.js form for creating Account and Deal in ZohoCRM
 - Updating Refresh and Access token functionality
 
+## You can see how it works
+
+<video width="320" height="240" autoplay muted loop controls poster="http://tigle.zzz.com.ua/Test-ZohoCRM-Poster.png">
+  <source src="http://tigle.zzz.com.ua/Test-Zoho-Video.mp4" type="video/mp4">
+</video>
+
 ## To Do list
 
-- [ ] Add Frontend (Tailwind UI or DaisyUI)
-- [ ] Add Validation Request for Account and Deal fields
-- [ ] Replace mock Account and Deal data with data from Form
+- [x] Add Frontend (~~Tailwind UI~~ or DaisyUI)
+- [x] Add Validation Request for Account and Deal fields
+- [x] Replace mock Account and Deal data with data from Form
 
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
