@@ -13,6 +13,14 @@ const props = defineProps({
     type: [String, null],
     required: false,
   },
+  stages: {
+    type: [Array, null],
+    required: false,
+  },
+  hasTokens: {
+    type: [Boolean, null],
+    required: false,
+  },
 });
 
 const { errors, message } = toRefs(props);
@@ -56,7 +64,7 @@ const displayMessage = () => {
 
 <template>
   <div class="flex items-center flex-col">
-    <div v-if="!$attrs.hasTokens" class="text-orange-700">
+    <div v-if="!hasTokens" class="text-orange-700">
       <Link href="/update-refresh-token">
         Update Refresh Token (once time)</Link
       >
@@ -64,10 +72,7 @@ const displayMessage = () => {
       <br />
     </div>
 
-    <div
-      v-if="$attrs.hasTokens && errors['INVALID_TOKEN']"
-      class="text-indigo-600"
-    >
+    <div v-if="hasTokens && errors['INVALID_TOKEN']" class="text-indigo-600">
       <Link href="/update-access-token">Update Access Token</Link>
 
       <br />
@@ -81,15 +86,15 @@ const displayMessage = () => {
 
     <!-- For test reason START -->
     <div class="text-green-500">
-      <Link href="/store-account-with-deal" method="post"
-        >Store Account with Deal</Link
-      >
+      <Link href="/store-account-with-deal" method="post">
+        Store Account with Deal
+      </Link>
 
       <br />
     </div>
     <!-- For test reason END -->
 
-    <Form class="w-[500px]" :stages="$attrs?.stages?.data" />
+    <Form class="w-[500px]" :stages="stages?.data" />
   </div>
 </template>
 
