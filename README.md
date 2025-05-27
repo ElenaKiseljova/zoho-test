@@ -9,9 +9,7 @@
 
 ## You can see how it works
 
-<video width="320" height="240" autoplay muted loop controls poster="http://tigle.zzz.com.ua/Test-ZohoCRM-Poster.png">
-  <source src="http://tigle.zzz.com.ua/Test-Zoho-Video.mp4" type="video/mp4">
-</video>
+[![Watch the video](http://tigle.zzz.com.ua/Test-ZohoCRM-Poster.png)](http://tigle.zzz.com.ua/Test-Zoho-Video.mp4)
 
 ## To Do list
 
