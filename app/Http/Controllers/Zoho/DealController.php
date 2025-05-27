@@ -34,15 +34,13 @@ class DealController extends Controller
     $ch = curl_init();
 
     // Settings cURL
-    curl_setopt_array($ch, $this->getCUrlOptions($this->DealURL, $request->all()));
+    curl_setopt_array($ch, $this->getCUrlOptions($this->DealURL, ['data' => [$request->all()]]));
 
     // Execute
     $response = curl_exec($ch);
 
     // JSON to array
     $response = json_decode($response, 1);
-
-    dd($response, $request->all());
 
     if (isset($response['status']) && $response['status'] === 'error') {
       $respData['error'] = [

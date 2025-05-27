@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Zoho;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Zoho\AuthenticationController;
+use App\Http\Requests\Zoho\CreateAccountWithDealRequest;
 use App\Models\ZohoAuthToken;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -83,7 +84,7 @@ class AccountController extends Controller
     $ch = curl_init();
 
     // Settings cURL
-    curl_setopt_array($ch, $this->getCUrlOptions($this->AccountsURL, $request->all()));
+    curl_setopt_array($ch, $this->getCUrlOptions($this->AccountsURL, ['data' => [$request->all()]]));
 
     // Execute
     $response = curl_exec($ch);
@@ -108,18 +109,24 @@ class AccountController extends Controller
   /**
    * Store a newly created Account in storage and after to store Deal.
    */
-  public function storeAccountWithDealHandler(Request $request)
+  public function storeAccountWithDealHandler(CreateAccountWithDealRequest $request)
   {
-    // Data
+    // Form Fields
+    [
+      'Account_Name' => $accountName,
+      'Website' => $accountWebsite,
+      'Phone' => $accountPhone,
+      'Deal_Name' => $dealName,
+      'Closing_Date' => $dealClosingDate,
+      'Stage' => $dealStage,
+    ] = $request->validated();
+
+    // Account Data
     $requestAccount = new Request;
     $requestAccount->replace([
-      "data" => [
-        [
-          "Account_Name" => "Test Account",
-          "Website" => "https://test.account",
-          "Phone" => "+380999999999",
-        ],
-      ],
+      'Account_Name' => $accountName,
+      'Website' => $accountWebsite,
+      'Phone' => $accountPhone,
     ]);
 
     // Response data
@@ -130,22 +137,15 @@ class AccountController extends Controller
     }
 
     // Create Deal
-    $accountData = $requestAccount->all();
-    $accountData = $accountData['data'][0] ?? [];
-
     $requestDeal = new Request;
 
     $requestDeal->replace([
-      'data' => [
-        [
-          'Deal_Name' => 'Hello Deal',
-          'Closing_Date' => '2025-05-31', // Date
-          'Stage' => 'Qualification', // Picklist
-          'Account_Name' => [
-            'id' => $data['details']['id'],
-            'name' => $accountData['Account_Name'],
-          ]
-        ]
+      'Deal_Name' => $dealName,
+      'Closing_Date' => $dealClosingDate,
+      'Stage' => $dealStage,
+      'Account_Name' => [
+        'id' => $data['details']['id'],
+        'name' => $accountName,
       ]
     ]);
 

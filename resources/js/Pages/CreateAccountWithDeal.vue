@@ -1,7 +1,7 @@
 <script setup>
 import Form from "@/Components/Form.vue";
 import { Link } from "@inertiajs/vue3";
-import { onMounted, toRefs, watch } from "vue";
+import { ref, onMounted, toRefs, watch } from "vue";
 import { useToast } from "vue-toastification";
 
 const props = defineProps({
@@ -28,10 +28,15 @@ const { errors, message } = toRefs(props);
 // Get toast interface
 const toast = useToast();
 
+// Fleg of Submitting the Form
+const isSubmittingForm = ref(false);
+
 watch(
   errors,
   () => {
-    displayErrors();
+    if (!isSubmittingForm.value) {
+      displayErrors();
+    }
   },
   { deep: 1 }
 );
@@ -41,7 +46,10 @@ watch(message, () => {
 });
 
 onMounted(() => {
-  displayErrors();
+  if (!isSubmittingForm.value) {
+    displayErrors();
+  }
+
   displayMessage();
 });
 
@@ -63,38 +71,50 @@ const displayMessage = () => {
 </script>
 
 <template>
-  <div class="flex items-center flex-col">
-    <div v-if="!hasTokens" class="text-orange-700">
-      <Link href="/update-refresh-token">
-        Update Refresh Token (once time)</Link
-      >
+  <div class="hero bg-base-200 min-h-screen">
+    <div class="hero-content flex-col">
+      <div class="text-center lg:text-left">
+        <h1 class="text-5xl font-bold">
+          Create Account and Deal in Zoho CRM now!
+        </h1>
+        <p class="py-6">
+          If You have changed the Grand Token and want to RESET all tokens - You
+          should click the «Clear Tokens» button to display the «Update Refresh
+          Token» button.
+        </p>
 
-      <br />
+        <div class="flex flex-col items-center gap-2 md:flex-row">
+          <Link
+            v-if="!hasTokens"
+            href="/update-refresh-token"
+            class="btn btn-primary"
+          >
+            Update Refresh Token (once time)
+          </Link>
+
+          <Link
+            v-if="hasTokens && errors['INVALID_TOKEN']"
+            href="/update-access-token"
+            class="btn btn-accent"
+          >
+            Update Access Token
+          </Link>
+
+          <Link href="/clear-tokens" method="delete" class="btn btn-secondary">
+            Clear Tokens
+          </Link>
+        </div>
+      </div>
+      <div class="card bg-base-100 w-full shrink-0 shadow-2xl">
+        <div class="card-body">
+          <Form
+            class="w-full"
+            v-model="isSubmittingForm"
+            :stages="stages?.data"
+          />
+        </div>
+      </div>
     </div>
-
-    <div v-if="hasTokens && errors['INVALID_TOKEN']" class="text-indigo-600">
-      <Link href="/update-access-token">Update Access Token</Link>
-
-      <br />
-    </div>
-
-    <div class="">
-      <Link href="/clear-tokens" method="delete">Clear Tokens</Link>
-
-      <br />
-    </div>
-
-    <!-- For test reason START -->
-    <div class="text-green-500">
-      <Link href="/store-account-with-deal" method="post">
-        Store Account with Deal
-      </Link>
-
-      <br />
-    </div>
-    <!-- For test reason END -->
-
-    <Form class="w-[500px]" :stages="stages?.data" />
   </div>
 </template>
 
