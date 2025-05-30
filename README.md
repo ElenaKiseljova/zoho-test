@@ -9,7 +9,7 @@
 
 ## You can see how it works
 
-[![Watch the video](http://tigle.zzz.com.ua/Test-ZohoCRM-Poster.png)](http://tigle.zzz.com.ua/Test-Zoho-Video.mp4)
+[![Watch the video](http://tigle.zzz.com.ua/zoho-test.png)](https://www.youtube.com/watch?v=dhXYOrK6VOY&list=PLIfiNdVPa5oju_brCMzLlAw58co8_dPuL&index=1)
 
 ## To Do list
 
